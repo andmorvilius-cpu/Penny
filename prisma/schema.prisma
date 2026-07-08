@@ -1,0 +1,83 @@
+// Prisma schema — the single source of truth for the database structure.
+// SQLite for now; to move to Postgres later, change `provider` to "postgresql"
+// and point DATABASE_URL at the new database. The models don't need to change.
+//
+// Conventions used everywhere:
+// - Money is ALWAYS integer cents (amountCents). Never floats.
+// - Every table has a userId string so real authentication can be added later
+//   without a schema rewrite. For now it's always the single local user.
+// - SQLite has no enum type, so `type`, `period` and `frequency` are strings
+//   validated by Zod at the app boundary (see src/lib/validation.ts).
+
+generator client {
+  provider = "prisma-client"
+  output   = "../src/generated/prisma"
+}
+
+datasource db {
+  provider = "sqlite"
+  url      = env("DATABASE_URL")
+}
+
+model Category {
+  id               String     @id @default(cuid())
+  userId           String
+  name             String
+  icon             String // emoji, e.g. "🍜"
+  color            String // hex, e.g. "#F9A8A8"
+  parentCategoryId String?
+  parent           Category?  @relation("Subcategories", fields: [parentCategoryId], references: [id])
+  children         Category[] @relation("Subcategories")
+  isDefault        Boolean    @default(false)
+  isArchived       Boolean    @default(false)
+  createdAt        DateTime   @default(now())
+
+  transactions          Transaction[]
+  budgets               Budget[]
+  recurringTransactions RecurringTransaction[]
+
+  @@index([userId])
+}
+
+model Transaction {
+  id          String   @id @default(cuid())
+  userId      String
+  amountCents Int // always positive; `type` says whether it's money in or out
+  type        String // "income" | "expense"
+  categoryId  String
+  category    Category @relation(fields: [categoryId], references: [id])
+  note        String?
+  date        DateTime // the calendar day this belongs to, stored as UTC midnight
+  createdAt   DateTime @default(now())
+
+  @@index([userId, date])
+}
+
+model Budget {
+  id          String   @id @default(cuid())
+  userId      String
+  categoryId  String
+  category    Category @relation(fields: [categoryId], references: [id])
+  amountCents Int
+  period      String   @default("monthly")
+  createdAt   DateTime @default(now())
+
+  // one budget per category per period type
+  @@unique([userId, categoryId, period])
+}
+
+model RecurringTransaction {
+  id          String   @id @default(cuid())
+  userId      String
+  amountCents Int
+  type        String // "income" | "expense"
+  categoryId  String
+  category    Category @relation(fields: [categoryId], references: [id])
+  note        String?
+  frequency   String // "daily" | "weekly" | "monthly"
+  nextRunDate DateTime
+  active      Boolean  @default(true)
+  createdAt   DateTime @default(now())
+
+  @@index([userId, nextRunDate])
+}
