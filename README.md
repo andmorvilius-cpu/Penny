@@ -21,6 +21,18 @@ Other useful scripts:
 | `npm run db:studio` | browse the database in Prisma Studio |
 | `npm run build` / `npm start` | production build / serve |
 
+### Troubleshooting
+
+- **"Invalid Server Actions request" when submitting a form** — you're opening
+  the app through a proxy, tunnel, or cloud preview URL, and Next.js's CSRF
+  protection is rejecting the POST because the browser's `Origin` doesn't match
+  the `Host` the server sees. The server log prints both values. Put the
+  browser-facing host into `ALLOWED_ORIGINS` in `.env` and restart the dev
+  server. Plain `localhost:3000` never needs this.
+- **"Failed to find Server Action … older or newer deployment"** — different
+  error: the browser tab is holding a page from a previous build. Refresh the
+  tab (and restart the dev server if it persists).
+
 ## Project structure
 
 ```

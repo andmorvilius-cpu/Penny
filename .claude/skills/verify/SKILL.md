@@ -45,6 +45,14 @@ emoji included (e.g. `"💰 Income"`).
   `npx tsx -e "import {PrismaClient} from './src/generated/prisma/client'; const p=new PrismaClient({datasourceUrl:'file:'+process.cwd()+'/prisma/dev.db'}); p.transaction.deleteMany({}).then(()=>p.\$disconnect())"`
 - Relative `file:` DATABASE_URL is resolved against `prisma/` by
   `src/lib/db.ts` — the actual db file is `prisma/dev.db`.
+- **Appending to .env with `echo >>`**: check the file ends with a newline
+  first (`cat -A .env`), or the append glues onto the last line and corrupts
+  both variables. Verify .env contents after any scripted edit.
+- Server-action POSTs are CSRF-checked: `Origin` must match `Host` or be in
+  `experimental.serverActions.allowedOrigins` (env `ALLOWED_ORIGINS`,
+  read at `next dev` startup / baked at `next build` for `next start`).
+  Mismatch → 500 "Invalid Server Actions request". A stale/wrong
+  `Next-Action` id → 404 "Failed to find Server Action" instead.
 
 ## Flows worth driving
 
