@@ -28,7 +28,9 @@ Other useful scripts:
   protection is rejecting the POST because the browser's `Origin` doesn't match
   the `Host` the server sees. The server log prints both values. Put the
   browser-facing host into `ALLOWED_ORIGINS` in `.env` and restart the dev
-  server. Plain `localhost:3000` never needs this.
+  server. Plain `localhost:3000` never needs this. **GitHub Codespaces is
+  detected automatically** (via `GITHUB_CODESPACES_PORT_FORWARDING_DOMAIN`) —
+  just restart the dev server after pulling.
 - **"Failed to find Server Action … older or newer deployment"** — different
   error: the browser tab is holding a page from a previous build. Refresh the
   tab (and restart the dev server if it persists).
